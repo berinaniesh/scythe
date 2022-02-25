@@ -61,8 +61,48 @@ fn alpha_beta (
     board: &Board, depth: i8,
     is_max: bool, alpha: i64,
     beta: i64, totatl: &mut i64) -> i64 {
-    if (depth == 0) || (board.status() != Board.Status::Ongoing) {
-        *total +  
+    if (depth == 0) || (board.status() != BoardStatus::Ongoing) {
+        *total += 1;
+        let val = calc_board_value(board);
+        return val;
+    }
+    let mut alpha = alpha;
+    let mut beta = beta;
+    if is_max {
+        let mut best_value = i64::MIN;
+        let moves = MoveGen::new_legal(&board);
+        let mut result_board = chess::Board::default();
+        for mv in moves {
+            board.make_move(mv, &mut result_board);
+            let value = alpha_beta(&result_board, depth-1, false, alpha, beta, best_val = std::cmp::max(alpha, best_val);
+            alpha = std::cmp::max(alpha, best_val);
+            if beta <= alpha {
+                break;
+            }
+        }
+        return best_val;
+        } 
+    else {
+        let mut best_val = i64::MAX;
+        let moves = MoveGen::new_legal(&board);
+        let mut result_board = chess::Board::default();
+        for mv in moves {
+            board.make_move(mv, &mut result_board);
+            let value  = alpha_beta(&result_board, depth-1, true, alpha, beta, best_val = std::cmp::min(value, best_val);
+            beta = std::cmp::min(beta, best_val);
+            if beta <= alpha {
+                break;
+            }
+        }
+        return best_val;
+    }
+}
+
+fn show_board(board: Board) {
+    for(&rank, lbl) in ALL_RANKS.iter().zip("12345678".chars()) {
+        print!("{}", lbl);
+        print!(" ");
+        for sq in get_rank(rank) {
 
 
 fn main() {
