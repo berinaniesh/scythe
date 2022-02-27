@@ -69,7 +69,7 @@ fn alpha_beta (
     let mut alpha = alpha;
     let mut beta = beta;
     if is_max {
-        let mut best_value = i64::MIN;
+        let mut best_val = i64::MIN;
         let moves = MoveGen::new_legal(&board);
         let mut result_board = chess::Board::default();
         for mv in moves {
@@ -103,8 +103,192 @@ fn show_board(board: Board) {
         print!("{}", lbl);
         print!(" ");
         for sq in get_rank(rank) {
+            let piece = board.piece_on(sq);
+            let sq_char = match board.color_on(sq) {
+                Some(Color::Black) => match piece {
+                    Some(Piece::King) => "♚",
+                    Some(Piece::Queen) => "♛",
+                    Some(Piece::Rook) => "♜",
+                    Some(Piece::Bishop) => "♝",
+                    Some(Piece::Knight) => "♞",
+                    Some(Piece::Pawn) => "♟︎",
+                    _ => "?"
+                },
+                Some(Color::White) => match piece {
+                    Some(Piece::King) => "♔",
+                    Some(Piece::Queen) => "♕",
+                    Some(Piece::Rook) => "♖",
+                    Some(Piece::Bishop) => "♗",
+                    Some(Piece::Knight) => "♘",
+                    Some(Piece::Pawn) => "♙",
+                    _ => "?"
+                }
+                _ => "."
+            };
+            print!("{} ", sq_char);
+        }
+        print!("\n");
+    }
+    println!("  a b c d e f g h");
+}
+
+fn find_best_move(board: &Board, depth: i8) -> Option<ChessMove> {
+    let black_move = board.side_to_move() == Color::Black;
+    let moves = MoveGen::new_legal(board);
+    let mut best_move = MoveGen::new_legal(board).nth(0);
+    let mut best_val;
+    let is_better = {
+        if black_move {
+            best_val = i64::MIN;
+            |x: i64, y: i64| -> bool {x>y}
+        } else {
+            best_val = i64::MAX;
+            |x: i64, y: i64| -> bool {x<y}
+        }
+    };
+
+    let mut total = 0;
+    for mv in moves{
+        let mut new_board = Board::default();
+        board.make_move(mv, &mut new_board);
+        let val = alpha_beta(&new_board, depth, black_move, i64::MIN, i64::MAX, &mut total);
+        if is_better(val, best_val) {
+            best_val = val;
+            best_move = Some(mv);
+        }
+    }
+    return best_move;
+}
+
+fn parse(
+        input: &Vec<String>,
+        ) -> Resutl<(bool, bool, bool, String, i8), ArgsError> {
+    let mut args = Args::new(PROGRAM_NAME, PROGRAM_DESC);
+    args.flag("h", "help", "Print the usage menu");
+    args.flag("i", "interactive" "Run the engine in interactive mode");
+    args.flag("s", "selfplay", "Run the engine in self play mode");
+    args.flag("b", "bench", "Run benchmarks");
+    args.option("d", "depth", "Set the depth of the tree search. Default 4",
+                "DEPTH", Occur::Req, Some("4".to_string())
+                );
+    args.option("f", "fen", "The state of the game as FEN", 
+                "FEN", Occur::Optional, Some(STARTING_FEN.to_string())
+                );
+    args.parse(input)?;
+
+    let is_help = args.value_of("help")?;
+    if is_help {
+        args.full_usage();
+    }
+    let is_interactive = args.value_of("interactive")?;
+    let is_self_play = args.value_of("selfplay")?;
+    let run_benchmarks = args.value_of("benc")?;
+    let fen_str: String = args.value_of("fen")?;
+    let ply_count: i8 = args.value_of::<String>("depth")?.parse::<i8>().unwrap();
+    println!("Depth: {}", ply_count);
+    Ok((is_interactive, is_self_play, run_benchmarks, fen_str, ply_count));
+}
+
+fn exec_ai_turn(board: &mut Board, ply_count: i8) {
+    match find_best_move(board, ply_count) {
+        Some(n) => { *board = board.make_move_new(n) }
+        None => { println!("ERROR: No move found") }
+    }
+    println!("------------------------------");
+    show_board(*board);
+}
+
+fn exec_user_turn(board: &mut Board, ply_count: i8) {
+    let stdin = io::stdin();
+    for line in stdin.lock().lines {
+        let str_in = match line {
+            Ok(s) => s,
+            Err(_) => String::from("")
+        };
+        let mv_result = ChessMove::from_san(&board, &str_in);
+        if let Ok(mv) = mv_result {
+             *board = board.make_move_new(mv);
+             break;
+        } else {
+            println!("Invalid move");
+        }
+    };
+    println!("--------------------");
+    show_board(*board);
+}
+
+
+fn interactive_loop(mut board: Board, ply_count: i8) {
+    let mut ai_turn = true;
+    loop {
+        if ai_turn {
+            exec_ai_turn(&mut board: Board, ply_count);
+        } else {
+            println!("Your turn");
+            exec_user_turn(&mut board, ply_count);
+        }
+        ai_turn = !ai_turn;
+    }
+}
+
+fn self_play_loop(mut board: Board, ply_count: i8) {
+    loop {
+        if board.status() == BoardStatus::Ongoing {
+            exec_ai_turn(&mut board, ply_count);
+        } else {
+            return;
+        }
+    }
+}
+
+fn run_bench() {
+    println!("name\tdepth\tduration");
+    for (name, fen) in benchmarks::cases {
+        let start = Instant::now();
+        let mut duration = 0;
+        match Board::from_str(fen) {
+            Ok(board) => {
+                for &depth in benchmarks::depths {
+                    find_best_move(&board, depth);
+                    duration = start.elapsed().as_millis();
+                    println!("{}\t{}\t{}", name, depth, duration);
+                }
+            }
+            Err(_) => {}
+        }
+    }
+}
 
 
 fn main() {
-    println!("Hello");
+    let args: Vec<String> = env::args().collect();
+    let (is_interactive, is_self_play, run_benchmarks, fen_str, ply_count) = parse(&args).unwrap();
+
+    if run_benchmarks {
+        run_bench();
+        return;
+    }
+
+    let board = match Board::from_str(fen_str.as_str()) {
+        Ok(b) => b, 
+        Err(_) => {
+            println!("Bad Fen");
+            return'
+        }
+    };
+
+    if is_self_play {
+        self_play_loop(board, ply_count);
+        println!("Game over");
+        return;
+    }
+
+    if !is_interactive {
+        match find_best_move(&board, ply_count) {
+            Some(n) => {println!("Best move: {}", n)},
+            None => {println!("ERROR: No move found")},
+        }
+    } else {
+        interactive_loop(board, ply_count);
+    }
 }
