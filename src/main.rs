@@ -52,15 +52,15 @@ fn calc_board_value(board: &Board) -> i64 {
     let result = match board.status() {
         BoardStatus::Checkmate => if w_move {20000} else {-20000},
         BoardStatus::Stalemate => 0,
-        BoardStatus::Ongoing => calc_pieces_values(board);
+        BoardStatus::Ongoing => calc_pieces_value(board)
     };
     return result;
 }
 
-fn alpha_beta (
-    board: &Board, depth: i8,
-    is_max: bool, alpha: i64,
-    beta: i64, totatl: &mut i64) -> i64 {
+fn alpha_beta(
+        board: &Board, depth: i8,
+        is_max: bool, alpha: i64,
+        beta: i64, total: &mut i64) -> i64 {
     if (depth == 0) || (board.status() != BoardStatus::Ongoing) {
         *total += 1;
         let val = calc_board_value(board);
@@ -74,21 +74,22 @@ fn alpha_beta (
         let mut result_board = chess::Board::default();
         for mv in moves {
             board.make_move(mv, &mut result_board);
-            let value = alpha_beta(&result_board, depth-1, false, alpha, beta, best_val = std::cmp::max(alpha, best_val);
+            let value = alpha_beta(&result_board, depth-1, false, alpha, beta, total);
+            best_val = std::cmp::max(alpha, best_val);
             alpha = std::cmp::max(alpha, best_val);
             if beta <= alpha {
                 break;
             }
         }
         return best_val;
-        } 
-    else {
+    } else {
         let mut best_val = i64::MAX;
         let moves = MoveGen::new_legal(&board);
         let mut result_board = chess::Board::default();
         for mv in moves {
             board.make_move(mv, &mut result_board);
-            let value  = alpha_beta(&result_board, depth-1, true, alpha, beta, best_val = std::cmp::min(value, best_val);
+            let value  = alpha_beta(&result_board, depth-1, true, alpha, beta, total);
+            best_val = std::cmp::min(value, best_val);
             beta = std::cmp::min(beta, best_val);
             if beta <= alpha {
                 break;
@@ -162,10 +163,10 @@ fn find_best_move(board: &Board, depth: i8) -> Option<ChessMove> {
 
 fn parse(
         input: &Vec<String>,
-        ) -> Resutl<(bool, bool, bool, String, i8), ArgsError> {
+        ) -> Result<(bool, bool, bool, String, i8), ArgsError> {
     let mut args = Args::new(PROGRAM_NAME, PROGRAM_DESC);
     args.flag("h", "help", "Print the usage menu");
-    args.flag("i", "interactive" "Run the engine in interactive mode");
+    args.flag("i", "interactive", "Run the engine in interactive mode");
     args.flag("s", "selfplay", "Run the engine in self play mode");
     args.flag("b", "bench", "Run benchmarks");
     args.option("d", "depth", "Set the depth of the tree search. Default 4",
@@ -186,7 +187,7 @@ fn parse(
     let fen_str: String = args.value_of("fen")?;
     let ply_count: i8 = args.value_of::<String>("depth")?.parse::<i8>().unwrap();
     println!("Depth: {}", ply_count);
-    Ok((is_interactive, is_self_play, run_benchmarks, fen_str, ply_count));
+    Ok((is_interactive, is_self_play, run_benchmarks, fen_str, ply_count))
 }
 
 fn exec_ai_turn(board: &mut Board, ply_count: i8) {
@@ -200,7 +201,7 @@ fn exec_ai_turn(board: &mut Board, ply_count: i8) {
 
 fn exec_user_turn(board: &mut Board, ply_count: i8) {
     let stdin = io::stdin();
-    for line in stdin.lock().lines {
+    for line in stdin.lock().lines() {
         let str_in = match line {
             Ok(s) => s,
             Err(_) => String::from("")
@@ -222,7 +223,7 @@ fn interactive_loop(mut board: Board, ply_count: i8) {
     let mut ai_turn = true;
     loop {
         if ai_turn {
-            exec_ai_turn(&mut board: Board, ply_count);
+            exec_ai_turn(&mut board, ply_count);
         } else {
             println!("Your turn");
             exec_user_turn(&mut board, ply_count);
@@ -273,7 +274,7 @@ fn main() {
         Ok(b) => b, 
         Err(_) => {
             println!("Bad Fen");
-            return'
+            return;
         }
     };
 
