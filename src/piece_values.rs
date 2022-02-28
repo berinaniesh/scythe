@@ -1,4 +1,4 @@
-use chess::{Piece};
+use chess::Piece;
 
 pub const PIECES: [Piece; 6] = [
     Piece::King, Piece::Queen, Piece::Bishop,
@@ -10,12 +10,12 @@ pub const PIECE_SQUARES: [[i64; 64]; 6] = [
     R_VALUES, N_VALUES, P_VALUES,
 ];
 
-pub const PIECE_VALS: [[i64; 6] = [
+pub const PIECE_VALS: [i64; 6] = [
     20_000, 900, 330,
     500, 320, 100
 ];
 
-const P_VALUES: [i64; 6] = [
+const P_VALUES: [i64; 64] = [
     0,      0,      0,      0,      0,      0,      0,      0,
     5,      10,     10,     -20,    -20,    10,     10,     5,
     5,      -5,     -10,    0,      0,      -10,    -5,     5,
@@ -28,7 +28,7 @@ const P_VALUES: [i64; 6] = [
 
 // Values after this line are wrong, garbage values input to first make the program compile. 
 
-const N_VALUES: [i64; 6] = [
+const N_VALUES: [i64; 64] = [
     0,      0,      0,      0,      0,      0,      0,      0,
     5,      10,     10,     -20,    -20,    10,     10,     5,
     5,      -5,     -10,    0,      0,      -10,    -5,     5,
@@ -39,7 +39,7 @@ const N_VALUES: [i64; 6] = [
     0,      0,      0,      0,      0,      0,      0,      0,
 ];
 
-const B_VALUES: [i64; 6] = [
+const B_VALUES: [i64; 64] = [
     0,      0,      0,      0,      0,      0,      0,      0,
     5,      10,     10,     -20,    -20,    10,     10,     5,
     5,      -5,     -10,    0,      0,      -10,    -5,     5,
@@ -50,7 +50,7 @@ const B_VALUES: [i64; 6] = [
     0,      0,      0,      0,      0,      0,      0,      0,
 ];
 
-const R_VALUES: [i64; 6] = [
+const R_VALUES: [i64; 64] = [
     0,      0,      0,      0,      0,      0,      0,      0,
     5,      10,     10,     -20,    -20,    10,     10,     5,
     5,      -5,     -10,    0,      0,      -10,    -5,     5,
@@ -61,7 +61,7 @@ const R_VALUES: [i64; 6] = [
     0,      0,      0,      0,      0,      0,      0,      0,
 ];
 
-const Q_VALUES: [i64; 6] = [
+const Q_VALUES: [i64; 64] = [
     0,      0,      0,      0,      0,      0,      0,      0,
     5,      10,     10,     -20,    -20,    10,     10,     5,
     5,      -5,     -10,    0,      0,      -10,    -5,     5,
@@ -72,7 +72,7 @@ const Q_VALUES: [i64; 6] = [
     0,      0,      0,      0,      0,      0,      0,      0,
 ];
 
-const K_VALUES: [i64; 6] = [
+const K_VALUES: [i64; 64] = [
     0,      0,      0,      0,      0,      0,      0,      0,
     5,      10,     10,     -20,    -20,    10,     10,     5,
     5,      -5,     -10,    0,      0,      -10,    -5,     5,
@@ -81,6 +81,4 @@ const K_VALUES: [i64; 6] = [
     10,     10,     20,     30,     30,     20,     10,     10,
     50,     50,     50,     50,     50,     50,     50,     50,
     0,      0,      0,      0,      0,      0,      0,      0,
-];
-
 ];

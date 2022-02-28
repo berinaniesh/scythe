@@ -9,7 +9,7 @@ use args::{Args, ArgsError};
 use getopts::Occur;
 use colored::{ColoredString, Colorize};
 mod piece_values;
-mod benchmarks;
+//mod benchmarks;
 
 
 const STARTING_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -163,7 +163,8 @@ fn find_best_move(board: &Board, depth: i8) -> Option<ChessMove> {
 
 fn parse(
         input: &Vec<String>,
-        ) -> Result<(bool, bool, bool, String, i8), ArgsError> {
+        ) -> Result<(bool, bool, String, i8), ArgsError> {
+        //) -> Result<(bool, bool, bool, String, i8), ArgsError> {
     let mut args = Args::new(PROGRAM_NAME, PROGRAM_DESC);
     args.flag("h", "help", "Print the usage menu");
     args.flag("i", "interactive", "Run the engine in interactive mode");
@@ -183,11 +184,12 @@ fn parse(
     }
     let is_interactive = args.value_of("interactive")?;
     let is_self_play = args.value_of("selfplay")?;
-    let run_benchmarks = args.value_of("benc")?;
+    //let run_benchmarks = args.value_of("benc")?;
     let fen_str: String = args.value_of("fen")?;
     let ply_count: i8 = args.value_of::<String>("depth")?.parse::<i8>().unwrap();
     println!("Depth: {}", ply_count);
-    Ok((is_interactive, is_self_play, run_benchmarks, fen_str, ply_count))
+    //Ok((is_interactive, is_self_play, run_benchmarks, fen_str, ply_count))
+    Ok((is_interactive, is_self_play, fen_str, ply_count))
 }
 
 fn exec_ai_turn(board: &mut Board, ply_count: i8) {
@@ -242,33 +244,33 @@ fn self_play_loop(mut board: Board, ply_count: i8) {
     }
 }
 
-fn run_bench() {
-    println!("name\tdepth\tduration");
-    for (name, fen) in benchmarks::cases {
-        let start = Instant::now();
-        let mut duration = 0;
-        match Board::from_str(fen) {
-            Ok(board) => {
-                for &depth in benchmarks::depths {
-                    find_best_move(&board, depth);
-                    duration = start.elapsed().as_millis();
-                    println!("{}\t{}\t{}", name, depth, duration);
-                }
-            }
-            Err(_) => {}
-        }
-    }
-}
+// fn run_bench() {
+//     println!("name\tdepth\tduration");
+//     for (name, fen) in benchmarks::cases {
+//         let start = Instant::now();
+//         let mut duration = 0;
+//         match Board::from_str(fen) {
+//             Ok(board) => {
+//                 for &depth in benchmarks::depths {
+//                     find_best_move(&board, depth);
+//                     duration = start.elapsed().as_millis();
+//                     println!("{}\t{}\t{}", name, depth, duration);
+//                 }
+//             }
+//             Err(_) => {}
+//         }
+//     }
+// }
 
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let (is_interactive, is_self_play, run_benchmarks, fen_str, ply_count) = parse(&args).unwrap();
-
-    if run_benchmarks {
-        run_bench();
-        return;
-    }
+    //let (is_interactive, is_self_play, run_benchmarks, fen_str, ply_count) = parse(&args).unwrap();
+    let (is_interactive, is_self_play, fen_str, ply_count) = parse(&args).unwrap();
+    // if run_benchmarks {
+    //     run_bench();
+    //     return;
+    // }
 
     let board = match Board::from_str(fen_str.as_str()) {
         Ok(b) => b, 
